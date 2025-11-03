@@ -14,7 +14,7 @@ const mockEvents: Event[] = [
     description: '매일 반복',
     location: '회의실 A',
     category: '업무',
-    repeat: { type: 'daily', interval: 1 },
+    repeat: { type: 'daily', interval: 1, id: 'repeat-1' },
     notificationTime: 10,
   },
   {
@@ -26,7 +26,7 @@ const mockEvents: Event[] = [
     description: '매일 반복',
     location: '회의실 A',
     category: '업무',
-    repeat: { type: 'daily', interval: 1 },
+    repeat: { type: 'daily', interval: 1, id: 'repeat-1' },
     notificationTime: 10,
   },
 ];
@@ -74,17 +74,18 @@ describe('useRecurringEventOperations', () => {
       await result.current.handleRecurringEdit(updatedEvent, false); // editSingleOnly = false
     });
 
-    // Should update all related events with same title
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith('/api/events/1', {
+    // Should update the recurring series (not individual events since repeat.id exists)
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith('/api/recurring-events/repeat-1', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...mockEvents[0], title: '수정된 제목' }),
-    });
-    expect(fetch).toHaveBeenCalledWith('/api/events/2', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...mockEvents[1], title: '수정된 제목' }),
+      body: JSON.stringify({
+        title: '수정된 제목',
+        description: '매일 반복',
+        location: '회의실 A',
+        category: '업무',
+        notificationTime: 10,
+      }),
     });
 
     expect(mockUpdateEvents).toHaveBeenCalledWith([]);
@@ -192,14 +193,11 @@ describe('useRecurringEventOperations', () => {
         await result.current.handleRecurringDelete(mockEvents[0], false); // deleteSingleOnly = false
       });
 
-      // Should delete all related events
-      expect(fetch).toHaveBeenCalledWith('/api/events/1', {
+      // Should delete the entire recurring series (since repeat.id exists)
+      expect(fetch).toHaveBeenCalledWith('/api/recurring-events/repeat-1', {
         method: 'DELETE',
       });
-      expect(fetch).toHaveBeenCalledWith('/api/events/2', {
-        method: 'DELETE',
-      });
-      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenCalledTimes(1);
       expect(mockUpdateEvents).toHaveBeenCalledWith([]);
     });
 

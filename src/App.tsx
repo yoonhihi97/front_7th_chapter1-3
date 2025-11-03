@@ -179,7 +179,7 @@ function App() {
     } else if (recurringDialogMode === 'edit' && pendingDragEvent) {
       // 드래그 앤 드롭으로 인한 반복 일정 수정
       try {
-        await handleRecurringEdit(pendingDragEvent, editSingleOnly);
+        await handleRecurringEdit(pendingDragEvent, editSingleOnly, true);
         enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
       } catch (error) {
         console.error(error);

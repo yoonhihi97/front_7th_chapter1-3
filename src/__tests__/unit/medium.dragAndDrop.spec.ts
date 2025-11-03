@@ -1,14 +1,11 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
 import { Event } from '../../types';
-
-// 드래그 앤 드롭 유틸리티 함수들 (아직 구현되지 않음)
-// 이 함수들은 STAGE 4에서 구현될 예정입니다.
 import {
-  handleDragStart,
-  handleDrop,
   extractDateFromDropTarget,
   changeDateOnly,
+  handleDragStart,
 } from '../../utils/dragAndDrop';
 
 describe('드래그 앤 드롭 유틸리티 함수', () => {
@@ -21,7 +18,7 @@ describe('드래그 앤 드롭 유틸리티 함수', () => {
       };
       const mockEvent = {
         dataTransfer: mockDataTransfer,
-      } as unknown as React.DragEvent;
+      } as unknown as React.DragEvent<HTMLElement>;
       const eventId = 'event-123';
 
       // When: handleDragStart 호출
@@ -39,7 +36,7 @@ describe('드래그 앤 드롭 유틸리티 함수', () => {
       };
       const mockEvent = {
         dataTransfer: mockDataTransfer,
-      } as unknown as React.DragEvent;
+      } as unknown as React.DragEvent<HTMLElement>;
 
       // When: handleDragStart 호출
       handleDragStart(mockEvent, 'event-123');
@@ -143,14 +140,6 @@ describe('드래그 앤 드롭 유틸리티 함수', () => {
     it('빈 셀(day === null)에 드롭 시 아무 동작도 하지 않는다', () => {
       // Given: 빈 셀 (data-date 속성 없음)
       const mockElement = document.createElement('div');
-      const mockEvent = {
-        preventDefault: vi.fn(),
-        currentTarget: mockElement,
-        dataTransfer: {
-          getData: vi.fn().mockReturnValue('event-123'),
-        },
-      } as unknown as React.DragEvent;
-
       const onDropCallback = vi.fn();
 
       // When: 드롭 시도

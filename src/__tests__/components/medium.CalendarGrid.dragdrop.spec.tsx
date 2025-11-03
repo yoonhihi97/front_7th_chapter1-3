@@ -150,9 +150,7 @@ describe('캘린더 그리드 드래그 앤 드롭 UI', () => {
       // When: 월간 뷰에서 빈 셀 확인
       const monthView = screen.getByTestId('month-view');
       const allCells = monthView.querySelectorAll('td');
-      const emptyCells = Array.from(allCells).filter(
-        (cell) => !cell.hasAttribute('data-date')
-      );
+      const emptyCells = Array.from(allCells).filter((cell) => !cell.hasAttribute('data-date'));
 
       // Then: 빈 셀에는 data-date 속성 없음
       expect(emptyCells.length).toBeGreaterThan(0);

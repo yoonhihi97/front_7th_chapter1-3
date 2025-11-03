@@ -34,7 +34,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import RecurringEventDialog from './components/RecurringEventDialog.tsx';
 import { useCalendarView } from './hooks/useCalendarView.ts';
@@ -208,7 +208,7 @@ function App() {
   const handleDropEvent = async (draggedEvent: Event, newDate: string) => {
     // 드롭된 이벤트 처리
     const droppedEvent = handleDrop(
-      { currentTarget: { getAttribute: () => newDate } } as any,
+      { currentTarget: { getAttribute: () => newDate } } as unknown as React.DragEvent<HTMLElement>,
       draggedEvent
     );
 

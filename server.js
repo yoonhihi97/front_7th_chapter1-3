@@ -152,6 +152,18 @@ app.put('/api/recurring-events/:repeatId', async (req, res) => {
 
   const newEvents = events.events.map((event) => {
     if (event.repeat.id === repeatId) {
+      let newDate = event.date;
+
+      // 날짜 오프셋이 있으면 적용 (드래그 앤 드롭 시)
+      if (updateData.dateOffset !== undefined && updateData.dateOffset !== 0) {
+        const date = new Date(event.date);
+        date.setDate(date.getDate() + updateData.dateOffset);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        newDate = `${year}-${month}-${day}`;
+      }
+
       return {
         ...event,
         title: updateData.title || event.title,
@@ -159,6 +171,7 @@ app.put('/api/recurring-events/:repeatId', async (req, res) => {
         location: updateData.location || event.location,
         category: updateData.category || event.category,
         notificationTime: updateData.notificationTime || event.notificationTime,
+        date: newDate,
         repeat: updateData.repeat ? { ...event.repeat, ...updateData.repeat } : event.repeat,
       };
     }

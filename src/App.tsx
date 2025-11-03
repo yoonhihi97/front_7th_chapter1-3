@@ -1,12 +1,10 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  Close,
-  Delete,
-  Edit,
-  Notifications,
-  Repeat,
-} from '@mui/icons-material';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import Close from '@mui/icons-material/Close';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import Notifications from '@mui/icons-material/Notifications';
+import Repeat from '@mui/icons-material/Repeat';
 import {
   Alert,
   AlertTitle,
@@ -54,9 +52,9 @@ import {
   getWeekDates,
   getWeeksAtMonth,
 } from './utils/dateUtils.ts';
+import { handleDragStart, handleDrop } from './utils/dragAndDrop.ts';
 import { findOverlappingEvents } from './utils/eventOverlap.ts';
 import { getTimeErrorMessage } from './utils/timeValidation.ts';
-import { handleDragStart, handleDrop } from './utils/dragAndDrop.ts';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
@@ -408,7 +406,9 @@ function App() {
                                 {/* ! TEST CASE */}
                                 {isRepeating && (
                                   <Tooltip
-                                    title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                                    title={`${event.repeat.interval}${getRepeatTypeLabel(
+                                      event.repeat.type
+                                    )}마다 반복${
                                       event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
                                     }`}
                                   >
@@ -525,7 +525,9 @@ function App() {
                                     {/* ! TEST CASE */}
                                     {isRepeating && (
                                       <Tooltip
-                                        title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                                        title={`${event.repeat.interval}${getRepeatTypeLabel(
+                                          event.repeat.type
+                                        )}마다 반복${
                                           event.repeat.endDate
                                             ? ` (종료: ${event.repeat.endDate})`
                                             : ''
@@ -810,7 +812,9 @@ function App() {
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
                       {event.repeat.type !== 'none' && (
                         <Tooltip
-                          title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                          title={`${event.repeat.interval}${getRepeatTypeLabel(
+                            event.repeat.type
+                          )}마다 반복${
                             event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
                           }`}
                         >
@@ -878,10 +882,14 @@ function App() {
           <DialogContentText>계속 진행하시겠습니까?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setIsOverlapDialogOpen(false);
-            setPendingDragEvent(null);
-          }}>취소</Button>
+          <Button
+            onClick={() => {
+              setIsOverlapDialogOpen(false);
+              setPendingDragEvent(null);
+            }}
+          >
+            취소
+          </Button>
           <Button
             color="error"
             onClick={async () => {

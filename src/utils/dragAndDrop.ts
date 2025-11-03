@@ -45,8 +45,13 @@ export const changeDateOnly = (event: Event, newDate: string): Event => {
  * - 빈 셀에 드롭 시 null 반환
  */
 export const handleDrop = (e: React.DragEvent<HTMLElement>, event: Event): Event | null => {
-  e.preventDefault();
-  e.stopPropagation();
+  // preventDefault와 stopPropagation이 존재하는지 확인
+  if (typeof e.preventDefault === 'function') {
+    e.preventDefault();
+  }
+  if (typeof e.stopPropagation === 'function') {
+    e.stopPropagation();
+  }
 
   // 드롭 타겟에서 날짜 추출
   const newDate = extractDateFromDropTarget(e.currentTarget);

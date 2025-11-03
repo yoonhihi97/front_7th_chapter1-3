@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Event } from '../types';
 
 /**
@@ -42,10 +44,7 @@ export const changeDateOnly = (event: Event, newDate: string): Event => {
  * - 유효한 날짜 셀에 드롭 시 날짜만 변경된 이벤트 객체 반환
  * - 빈 셀에 드롭 시 null 반환
  */
-export const handleDrop = (
-  e: React.DragEvent<HTMLElement>,
-  event: Event
-): Event | null => {
+export const handleDrop = (e: React.DragEvent<HTMLElement>, event: Event): Event | null => {
   e.preventDefault();
   e.stopPropagation();
 

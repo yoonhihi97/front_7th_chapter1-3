@@ -56,6 +56,7 @@ import {
 } from './utils/dateUtils.ts';
 import { findOverlappingEvents } from './utils/eventOverlap.ts';
 import { getTimeErrorMessage } from './utils/timeValidation.ts';
+import { handleDragStart, handleDrop } from './utils/dragAndDrop.ts';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
@@ -165,6 +166,9 @@ function App() {
   const [recurringEditMode, setRecurringEditMode] = useState<boolean | null>(null); // true = single, false = all
   const [recurringDialogMode, setRecurringDialogMode] = useState<'edit' | 'delete'>('edit');
 
+  // 드래그 앤 드롭 상태
+  const [pendingDragEvent, setPendingDragEvent] = useState<Event | null>(null);
+
   const { enqueueSnackbar } = useSnackbar();
 
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
@@ -174,6 +178,17 @@ function App() {
       editEvent(pendingRecurringEdit);
       setIsRecurringDialogOpen(false);
       setPendingRecurringEdit(null);
+    } else if (recurringDialogMode === 'edit' && pendingDragEvent) {
+      // 드래그 앤 드롭으로 인한 반복 일정 수정
+      try {
+        await handleRecurringEdit(pendingDragEvent, editSingleOnly);
+        enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
+      } catch (error) {
+        console.error(error);
+        enqueueSnackbar('일정 이동 실패', { variant: 'error' });
+      }
+      setIsRecurringDialogOpen(false);
+      setPendingDragEvent(null);
     } else if (recurringDialogMode === 'delete' && pendingRecurringDelete) {
       // 반복 일정 삭제 처리
       try {
@@ -190,6 +205,40 @@ function App() {
 
   const isRecurringEvent = (event: Event): boolean => {
     return event.repeat.type !== 'none' && event.repeat.interval > 0;
+  };
+
+  const handleDropEvent = async (draggedEvent: Event, newDate: string) => {
+    // 드롭된 이벤트 처리
+    const droppedEvent = handleDrop(
+      { currentTarget: { getAttribute: () => newDate } } as any,
+      draggedEvent
+    );
+
+    if (!droppedEvent) {
+      enqueueSnackbar('유효한 날짜에 드롭해주세요', { variant: 'error' });
+      return;
+    }
+
+    // 겹치는 일정 확인
+    const overlapping = findOverlappingEvents(droppedEvent, events);
+    if (overlapping.length > 0) {
+      setOverlappingEvents(overlapping);
+      setPendingDragEvent(droppedEvent);
+      setIsOverlapDialogOpen(true);
+      return;
+    }
+
+    // 반복 일정인 경우 대화상자 표시
+    if (isRecurringEvent(draggedEvent)) {
+      setPendingDragEvent(droppedEvent);
+      setRecurringDialogMode('edit');
+      setIsRecurringDialogOpen(true);
+      return;
+    }
+
+    // 일반 일정 저장
+    await saveEvent(droppedEvent);
+    enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
   };
 
   const handleEditEvent = (event: Event) => {
@@ -308,62 +357,78 @@ function App() {
             </TableHead>
             <TableBody>
               <TableRow>
-                {weekDates.map((date) => (
-                  <TableCell
-                    key={date.toISOString()}
-                    sx={{
-                      height: '120px',
-                      verticalAlign: 'top',
-                      width: '14.28%',
-                      padding: 1,
-                      border: '1px solid #e0e0e0',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="bold">
-                      {date.getDate()}
-                    </Typography>
-                    {filteredEvents
-                      .filter(
-                        (event) => new Date(event.date).toDateString() === date.toDateString()
-                      )
-                      .map((event) => {
-                        const isNotified = notifiedEvents.includes(event.id);
-                        const isRepeating = event.repeat.type !== 'none';
+                {weekDates.map((date) => {
+                  const dateString = formatDate(currentDate, date.getDate());
+                  return (
+                    <TableCell
+                      key={date.toISOString()}
+                      data-date={dateString}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        const eventId = e.dataTransfer.getData('eventId');
+                        const draggedEvent = events.find((ev) => ev.id === eventId);
+                        if (draggedEvent) {
+                          handleDropEvent(draggedEvent, dateString);
+                        }
+                      }}
+                      sx={{
+                        height: '120px',
+                        verticalAlign: 'top',
+                        width: '14.28%',
+                        padding: 1,
+                        border: '1px solid #e0e0e0',
+                        overflow: 'hidden',
+                        cursor: 'default',
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="bold">
+                        {date.getDate()}
+                      </Typography>
+                      {filteredEvents
+                        .filter(
+                          (event) => new Date(event.date).toDateString() === date.toDateString()
+                        )
+                        .map((event) => {
+                          const isNotified = notifiedEvents.includes(event.id);
+                          const isRepeating = event.repeat.type !== 'none';
 
-                        return (
-                          <Box
-                            key={event.id}
-                            sx={{
-                              ...eventBoxStyles.common,
-                              ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
-                            }}
-                          >
-                            <Stack direction="row" spacing={1} alignItems="center">
-                              {isNotified && <Notifications fontSize="small" />}
-                              {/* ! TEST CASE */}
-                              {isRepeating && (
-                                <Tooltip
-                                  title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
-                                    event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
-                                  }`}
+                          return (
+                            <Box
+                              key={event.id}
+                              draggable={true}
+                              onDragStart={(e) => handleDragStart(e, event.id)}
+                              sx={{
+                                ...eventBoxStyles.common,
+                                ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
+                                cursor: 'move',
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                {isNotified && <Notifications fontSize="small" />}
+                                {/* ! TEST CASE */}
+                                {isRepeating && (
+                                  <Tooltip
+                                    title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                                      event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
+                                    }`}
+                                  >
+                                    <Repeat fontSize="small" />
+                                  </Tooltip>
+                                )}
+                                <Typography
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
                                 >
-                                  <Repeat fontSize="small" />
-                                </Tooltip>
-                              )}
-                              <Typography
-                                variant="caption"
-                                noWrap
-                                sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
-                              >
-                                {event.title}
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        );
-                      })}
-                  </TableCell>
-                ))}
+                                  {event.title}
+                                </Typography>
+                              </Stack>
+                            </Box>
+                          );
+                        })}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             </TableBody>
           </Table>
@@ -399,6 +464,19 @@ function App() {
                     return (
                       <TableCell
                         key={dayIndex}
+                        data-date={dateString || undefined}
+                        onDragOver={(e) => {
+                          if (dateString) e.preventDefault();
+                        }}
+                        onDrop={(e) => {
+                          if (dateString) {
+                            const eventId = e.dataTransfer.getData('eventId');
+                            const draggedEvent = events.find((ev) => ev.id === eventId);
+                            if (draggedEvent) {
+                              handleDropEvent(draggedEvent, dateString);
+                            }
+                          }
+                        }}
                         sx={{
                           height: '120px',
                           verticalAlign: 'top',
@@ -407,6 +485,7 @@ function App() {
                           border: '1px solid #e0e0e0',
                           overflow: 'hidden',
                           position: 'relative',
+                          cursor: 'default',
                         }}
                       >
                         {day && (
@@ -426,6 +505,8 @@ function App() {
                               return (
                                 <Box
                                   key={event.id}
+                                  draggable={true}
+                                  onDragStart={(e) => handleDragStart(e, event.id)}
                                   sx={{
                                     p: 0.5,
                                     my: 0.5,
@@ -436,6 +517,7 @@ function App() {
                                     minHeight: '18px',
                                     width: '100%',
                                     overflow: 'hidden',
+                                    cursor: 'move',
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
@@ -796,27 +878,38 @@ function App() {
           <DialogContentText>계속 진행하시겠습니까?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsOverlapDialogOpen(false)}>취소</Button>
+          <Button onClick={() => {
+            setIsOverlapDialogOpen(false);
+            setPendingDragEvent(null);
+          }}>취소</Button>
           <Button
             color="error"
-            onClick={() => {
+            onClick={async () => {
               setIsOverlapDialogOpen(false);
-              saveEvent({
-                id: editingEvent ? editingEvent.id : undefined,
-                title,
-                date,
-                startTime,
-                endTime,
-                description,
-                location,
-                category,
-                repeat: {
-                  type: isRepeating ? repeatType : 'none',
-                  interval: repeatInterval,
-                  endDate: repeatEndDate || undefined,
-                },
-                notificationTime,
-              });
+              if (pendingDragEvent) {
+                // 드래그 앤 드롭 진행
+                await saveEvent(pendingDragEvent);
+                enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
+                setPendingDragEvent(null);
+              } else {
+                // 폼 제출 진행
+                await saveEvent({
+                  id: editingEvent ? editingEvent.id : undefined,
+                  title,
+                  date,
+                  startTime,
+                  endTime,
+                  description,
+                  location,
+                  category,
+                  repeat: {
+                    type: isRepeating ? repeatType : 'none',
+                    interval: repeatInterval,
+                    endDate: repeatEndDate || undefined,
+                  },
+                  notificationTime,
+                });
+              }
             }}
           >
             계속 진행

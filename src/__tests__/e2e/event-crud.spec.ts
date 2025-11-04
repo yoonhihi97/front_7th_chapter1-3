@@ -77,13 +77,13 @@ test.describe('시나리오 1: 일정 생성 (Create)', () => {
     expect(count).toBe(0);
   });
 
-  test('TC1.3: 시간 검증 - 종료 시간이 시작 시간보다 이름', async ({ page }) => {
-    // Act: 종료 시간을 시작 시간보다 이르게 설정
+  test('TC1.3: 시간 검증 - 종료 시간이 시작 시간보다 빠름', async ({ page }) => {
+    // Act: 종료 시간을 시작 시간보다 빠르게 설정
     await fillEventForm(page, {
       title: '잘못된 시간 일정',
       date: basicEvent.date,
       startTime: '15:00',
-      endTime: '14:00', // 시작 시간보다 이름
+      endTime: '14:00', // 시작: 15:00, 종료: 14:00 (빠름)
     });
     await page.getByTestId('event-submit-button').click();
 

@@ -64,8 +64,8 @@ test.describe('EventOverlapHandling', () => {
       await expect(page.getByRole('button', { name: '계속 진행' })).toBeVisible();
     });
 
-    test('TC1.2: 경계값 - 겹치지 않음 (14:00-16:00 vs 16:00-18:00)', async ({ page }) => {
-      // Arrange: 기존 일정 생성
+    test('TC1.2: 경계값 - 겹치지 않음 (한 일정이 끝나자마자 다음 일정 시작)', async ({ page }) => {
+      // Arrange: 기존 일정 생성 (14:00-16:00)
       const existingEvent: EventForm = {
         title: '오후 회의',
         date: '2025-10-16',
@@ -81,22 +81,22 @@ test.describe('EventOverlapHandling', () => {
       await page.reload();
       await waitForEventLoading(page);
 
-      // Act: 경계값: 정확히 16:00 시작
+      // Act: 경계값 테스트 - 종료 시간에 정확히 시작하는 새 일정 (16:00-18:00)
       await page.locator('#title').fill('저녁 회의');
       await page.locator('#date').fill('2025-10-16');
       await page.locator('#start-time').fill('16:00');
       await page.locator('#end-time').fill('18:00');
       await page.getByTestId('event-submit-button').click();
 
-      // Assert: 겹침 다이얼로그가 표시되지 않음
+      // Assert: 겹침 다이얼로그가 표시되지 않음 (경계에서는 겹치지 않음으로 간주)
       await expect(page.getByText('일정 겹침 경고')).not.toBeVisible();
 
       // 일정이 정상 생성됨
       await expect(page.getByTestId('event-list').getByText('저녁 회의')).toBeVisible();
     });
 
-    test('TC1.3: 경계값 - 겹치지 않음 (14:00-16:00 vs 12:00-14:00)', async ({ page }) => {
-      // Arrange: 기존 일정 생성
+    test('TC1.3: 경계값 - 겹치지 않음 (경계시간)', async ({ page }) => {
+      // Arrange: 기존 일정 생성 (14:00-16:00)
       const existingEvent: EventForm = {
         title: '점심 회의',
         date: '2025-10-17',
@@ -112,14 +112,14 @@ test.describe('EventOverlapHandling', () => {
       await page.reload();
       await waitForEventLoading(page);
 
-      // Act: 경계값: 정확히 14:00 종료
+      // Act: 경계값 테스트 - 기존 일정의 시작 시간에 정확히 종료 (12:00-14:00)
       await page.locator('#title').fill('오전 회의');
       await page.locator('#date').fill('2025-10-17');
       await page.locator('#start-time').fill('12:00');
       await page.locator('#end-time').fill('14:00');
       await page.getByTestId('event-submit-button').click();
 
-      // Assert: 겹침 다이얼로그가 표시되지 않음
+      // Assert: 겹침 다이얼로그가 표시되지 않음 (경계에서는 겹치지 않음으로 간주)
       await expect(page.getByText('일정 겹침 경고')).not.toBeVisible();
 
       // 일정이 정상 생성됨

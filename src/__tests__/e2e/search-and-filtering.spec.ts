@@ -183,49 +183,83 @@ test.describe('SearchAndFiltering', () => {
     await expect(eventList.getByText('개인 일정')).not.toBeVisible();
   });
 
-  test('대소문자 구분 없이 검색', async ({ page }) => {
-    // Arrange: 일정 생성
-    await createTestEvent(page, searchTestEvents[0]); // "팀 회의"
+  test('검색 시 정확한 매칭', async ({ page }) => {
+    // Arrange: 일정 생성 (영문 포함한 일정들)
+    const eventWithEnglish: EventForm[] = [
+      { ...searchTestEvents[0], title: 'Team Meeting' },
+      { ...searchTestEvents[1], title: '점심 약속' },
+    ];
+    await createTestEvent(page, eventWithEnglish[0]);
+    await createTestEvent(page, eventWithEnglish[1]);
     await page.reload();
     await waitForEventLoading(page);
 
-    // Act: 소문자로 검색
+    // Act: 영문 소문자로 검색
     const searchInput = page.locator('#search');
-    await searchInput.fill('팀');
+    await searchInput.fill('team');
 
-    // Assert: 결과 표시됨
+    // Assert: 대소문자 구분 없이 "Team Meeting" 검색됨
     const eventList = page.getByTestId('event-list');
-    await expect(eventList.getByText('팀 회의')).toBeVisible();
+    await expect(eventList.getByText('Team Meeting')).toBeVisible();
+    await expect(eventList.getByText('점심 약속')).not.toBeVisible();
   });
 
-  test('설명 필드로도 검색 가능', async ({ page }) => {
-    // Arrange: 일정 생성
-    await createTestEvent(page, searchTestEvents[0]); // description: "프로젝트 진행 상황 논의"
+  test('설명 필드로만 검색 가능 (제목에는 없는 내용)', async ({ page }) => {
+    // Arrange: 일정 생성 - 제목과 설명이 다른 일정
+    const eventWithDescription: EventForm = {
+      title: '프로젝트 회의',
+      date: '2025-10-15',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '고급 AI 알고리즘 논의',  // 제목에 없는 고유한 내용
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    };
+    await createTestEvent(page, eventWithDescription);
     await page.reload();
     await waitForEventLoading(page);
 
-    // Act: 설명 내용으로 검색
+    // Act: 설명에만 있는 "알고리즘"으로 검색
     const searchInput = page.locator('#search');
-    await searchInput.fill('진행 상황');
+    await searchInput.fill('알고리즘');
 
-    // Assert: 결과 표시됨
+    // Assert: 설명 필드에서 검색되어 일정이 표시됨
     const eventList = page.getByTestId('event-list');
-    await expect(eventList.getByText('팀 회의')).toBeVisible();
+    await expect(eventList.getByText('프로젝트 회의')).toBeVisible();
+
+    // 다른 일정은 이 키워드를 가지지 않으므로 표시 안 됨
+    await expect(eventList.getByText('점심 약속')).not.toBeVisible();
   });
 
-  test('위치 필드로도 검색 가능', async ({ page }) => {
-    // Arrange: 일정 생성
-    await createTestEvent(page, searchTestEvents[1]); // location: "강남역"
+  test('위치 필드로만 검색 가능 (제목/설명에는 없는 내용)', async ({ page }) => {
+    // Arrange: 일정 생성 - 위치에만 고유한 내용
+    const eventWithLocation: EventForm = {
+      title: '미팅',
+      date: '2025-10-15',
+      startTime: '12:00',
+      endTime: '13:00',
+      description: '회의 시간',
+      location: '강남역 대기업 지하 B2 식당',  // 제목/설명에 없는 고유한 위치명
+      category: '개인',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    };
+    await createTestEvent(page, eventWithLocation);
     await page.reload();
     await waitForEventLoading(page);
 
-    // Act: 위치로 검색
+    // Act: 위치에만 있는 "B2 식당"으로 검색
     const searchInput = page.locator('#search');
-    await searchInput.fill('강남');
+    await searchInput.fill('B2 식당');
 
-    // Assert: 결과 표시됨
+    // Assert: 위치 필드에서 검색되어 일정이 표시됨
     const eventList = page.getByTestId('event-list');
-    await expect(eventList.getByText('점심 약속')).toBeVisible();
+    await expect(eventList.getByText('미팅')).toBeVisible();
+
+    // 다른 일정은 이 위치를 가지지 않으므로 표시 안 됨
+    await expect(eventList.getByText('팀 회의')).not.toBeVisible();
   });
 
   test('검색어 입력 후 즉시 필터링 (onChange 이벤트)', async ({ page }) => {

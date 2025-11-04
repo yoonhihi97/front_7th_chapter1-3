@@ -276,7 +276,7 @@ test.describe('시나리오 3: 반복 일정 편집 (Update Recurring)', () => {
 // 시나리오 4: 반복 일정 삭제 (Delete Recurring)
 // ============================================================================
 
-test.describe('시나리오 1: 반복 일정 삭제 (Delete Recurring)', () => {
+test.describe('시나리오 4: 반복 일정 삭제 (Delete Recurring)', () => {
   test.beforeEach(async ({ page }) => {
     await page.clock.install({ time: new Date('2025-10-01T00:00:00Z') });
     await initializeTestData(page);
@@ -437,10 +437,10 @@ test.describe('시나리오 1: 반복 일정 삭제 (Delete Recurring)', () => {
 });
 
 // ============================================================================
-// 시나리오 3: 에러 케이스 (Error Cases)
+// 시나리오 5: 에러 케이스 (Error Cases)
 // ============================================================================
 
-test.describe('시나리오 2: 에러 케이스 (Error Cases)', () => {
+test.describe('시나리오 5: 에러 케이스 (Error Cases)', () => {
   test.beforeEach(async ({ page }) => {
     await page.clock.install({ time: new Date('2025-10-01T00:00:00Z') });
     await initializeTestData(page);
@@ -460,12 +460,12 @@ test.describe('시나리오 2: 에러 케이스 (Error Cases)', () => {
     await expect(page.getByText('필수 정보를 모두 입력해주세요.')).toBeVisible();
   });
 
-  test('TC3.2: 시간 검증 에러 - 종료시간이 시작시간보다 이름', async ({ page }) => {
+  test('TC3.2: 시간 검증 에러 - 종료 시간이 시작 시간보다 빠름', async ({ page }) => {
     // Act: 잘못된 시간으로 입력
     await page.locator('#title').fill('시간 에러 테스트');
     await page.locator('#date').fill('2025-10-15');
     await page.locator('#start-time').fill('15:00');
-    await page.locator('#end-time').fill('14:00'); // 시작보다 이름
+    await page.locator('#end-time').fill('14:00'); // 종료: 14:00, 시작: 15:00 (빠름)
 
     await page.getByTestId('event-submit-button').click();
 

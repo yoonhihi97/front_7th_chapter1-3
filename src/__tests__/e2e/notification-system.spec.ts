@@ -27,10 +27,13 @@ test.describe('NotificationSystem', () => {
       notificationTime: 10,
     };
 
+    // API를 통해 일정 생성
     await createTestEvent(page, notificationEvent);
 
-    // 시간 고정 (2025-10-15 13:50:00) - goto 전에 설치
+    // 1. 시간 고정 (2025-10-15 13:50:00) - 일정 생성 후 설정
     await page.clock.install({ time: new Date('2025-10-15T13:50:00') });
+
+    // 2. 페이지 로드 (고정된 시간으로 로드)
     await page.goto('/');
     await waitForEventLoading(page);
 
@@ -60,10 +63,13 @@ test.describe('NotificationSystem', () => {
       notificationTime: 10,
     };
 
+    // API를 통해 일정 생성
     await createTestEvent(page, notificationEvent);
 
-    // 시간 고정 (2025-10-15 13:00:00) - goto 전에 설치
+    // 1. 시간 고정 (2025-10-15 13:00:00) - 현재: 13:00, 시작: 14:00 = 60분 남음
     await page.clock.install({ time: new Date('2025-10-15T13:00:00') });
+
+    // 2. 페이지 로드 (고정된 시간으로 로드)
     await page.goto('/');
     await waitForEventLoading(page);
 
@@ -106,11 +112,14 @@ test.describe('NotificationSystem', () => {
       notificationTime: 5,
     };
 
+    // 일정 생성
     await createTestEvent(page, firstEvent);
     await createTestEvent(page, secondEvent);
 
-    // 시간 고정 (2025-10-15 13:45:00) - goto 전에 설치
+    // 1. 시간 고정 (2025-10-15 13:45:00) - 일정 생성 후 설정
     await page.clock.install({ time: new Date('2025-10-15T13:45:00') });
+
+    // 2. 페이지 로드 (고정된 시간으로 로드)
     await page.goto('/');
     await waitForEventLoading(page);
 

@@ -263,6 +263,12 @@ function App() {
     }
   };
 
+  // 날짜 셀 클릭 시 폼의 날짜 필드에 해당 날짜를 자동으로 입력
+  const handleDateCellClick = (dateString: string | null) => {
+    if (!dateString) return; // null 셀은 클릭 무시
+    setDate(dateString); // 날짜만 업데이트 (다른 폼 값은 유지)
+  };
+
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
       enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
@@ -361,6 +367,7 @@ function App() {
                     <TableCell
                       key={date.toISOString()}
                       data-date={dateString}
+                      onClick={() => handleDateCellClick(dateString)}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         const eventId = e.dataTransfer.getData('eventId');
@@ -465,6 +472,7 @@ function App() {
                       <TableCell
                         key={dayIndex}
                         data-date={dateString || undefined}
+                        onClick={() => handleDateCellClick(dateString || null)}
                         onDragOver={(e) => {
                           if (dateString) e.preventDefault();
                         }}

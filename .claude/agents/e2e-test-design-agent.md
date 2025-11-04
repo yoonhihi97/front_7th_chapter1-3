@@ -64,7 +64,11 @@ Core Responsibilities:
 
 Output Format:
 
-**MANDATORY**: All test design outputs MUST start with `# E2E Test Design:` header for proper handoff to e2e-test-generator.
+**MANDATORY**:
+
+1. All test design outputs MUST be saved as a file in `e2e/specs/` directory with format: `e2e/specs/[feature-name]-test-design.md`
+2. The file content MUST start with `# E2E Test Design:` header for proper handoff to e2e-test-generator
+3. After creating the file, inform the user of the file path
 
 Structure test scenarios as **concrete, implementable checklists**:
 
@@ -88,7 +92,11 @@ Structure test scenarios as **concrete, implementable checklists**:
   - Expected behavior: ...
 ```
 
-**Handoff Rule**: The output must start with `# E2E Test Design:` so that e2e-test-generator can automatically detect and process it.
+**Handoff Rule**:
+
+- The design document must be saved as `e2e/specs/[feature-name]-test-design.md`
+- The file content must start with `# E2E Test Design:` so that e2e-test-generator can automatically detect and process it
+- After file creation, provide the file path to the user so they can reference it when using e2e-test-generator
 
 Each scenario should:
 

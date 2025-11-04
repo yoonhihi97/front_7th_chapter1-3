@@ -94,7 +94,7 @@ Structure test scenarios as **concrete, implementable checklists**:
 
 **Handoff Rule**:
 
-- The design document must be saved as `e2e/specs/[feature-name]-test-design.md`
+- The design document must be saved as `src/__tests__/e2e/specs/[feature-name]-test-design.md`
 - The file content must start with `# E2E Test Design:` so that e2e-test-generator can automatically detect and process it
 - After file creation, provide the file path to the user so they can reference it when using e2e-test-generator
 

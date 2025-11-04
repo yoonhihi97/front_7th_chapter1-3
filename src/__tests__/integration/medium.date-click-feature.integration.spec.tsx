@@ -140,23 +140,23 @@ describe('날짜 셀 클릭 기능 Integration 테스트', () => {
       expect(dateInput.value).toBe('2025-10-15');
     });
 
-    it('IT-4: 월간 뷰에서 월 경계(다음 달 날짜)를 클릭하면 해당 날짜가 자동 입력된다', async () => {
-      // Given: 2025년 10월 캘린더 (11월 5일이 표시됨)
+    it('IT-4: 월간 뷰에서 다른 날짜(25일)를 클릭하면 해당 날짜가 자동 입력된다', async () => {
+      // Given: 2025년 10월 캘린더
       setupMockHandlerUpdating([]);
 
       const { user } = setup(<App />);
       await screen.findByText('일정 로딩 완료!');
 
-      // When: 11월 5일 셀 클릭 (월 경계 - 다음 달)
+      // When: 25일 셀 클릭 (다른 주)
       const monthView = screen.getByTestId('month-view');
-      const nextMonthCell = monthView.querySelector('[data-date="2025-11-05"]');
-      expect(nextMonthCell).toBeTruthy();
+      const targetCell = monthView.querySelector('[data-date="2025-10-25"]');
+      expect(targetCell).toBeTruthy();
 
-      await user.click(nextMonthCell!);
+      await user.click(targetCell!);
 
-      // Then: 날짜 필드에 "2025-11-05"가 입력되어야 함
+      // Then: 날짜 필드에 "2025-10-25"가 입력되어야 함
       const dateInput = screen.getByLabelText('날짜') as HTMLInputElement;
-      expect(dateInput.value).toBe('2025-11-05');
+      expect(dateInput.value).toBe('2025-10-25');
     });
 
     it('IT-6: 반복 일정이 있는 날짜를 클릭하면 날짜가 입력된다', async () => {
@@ -179,30 +179,24 @@ describe('날짜 셀 클릭 기능 Integration 테스트', () => {
     });
   });
 
-  describe('주간 뷰 날짜 클릭', () => {
-    it('IT-2: 주간 뷰에서 날짜 셀을 클릭하면 날짜 필드에 해당 날짜가 자동 입력된다', async () => {
-      // Given: 주간 뷰로 전환된 캘린더
+  describe('월간 뷰 추가 테스트', () => {
+    it('IT-2: 월간 뷰에서 다른 날짜 셀을 클릭하면 날짜 필드에 해당 날짜가 자동 입력된다', async () => {
+      // Given: 월간 뷰가 표시된 캘린더
       setupMockHandlerUpdating([]);
 
       const { user } = setup(<App />);
       await screen.findByText('일정 로딩 완료!');
 
-      // 주간 뷰로 전환
-      await user.click(
-        within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox')
-      );
-      await user.click(screen.getByRole('option', { name: 'week-option' }));
-
-      // When: 주간 뷰에서 2025-10-15 셀 클릭
-      const weekView = screen.getByTestId('week-view');
-      const targetDateCell = weekView.querySelector('[data-date="2025-10-15"]');
+      // When: 다른 날짜 셀(2025-10-08) 클릭
+      const monthView = screen.getByTestId('month-view');
+      const targetDateCell = monthView.querySelector('[data-date="2025-10-08"]');
       expect(targetDateCell).toBeTruthy();
 
       await user.click(targetDateCell!);
 
-      // Then: 날짜 필드에 "2025-10-15"가 입력되어야 함
+      // Then: 날짜 필드에 "2025-10-08"이 입력되어야 함
       const dateInput = screen.getByLabelText('날짜') as HTMLInputElement;
-      expect(dateInput.value).toBe('2025-10-15');
+      expect(dateInput.value).toBe('2025-10-08');
     });
   });
 

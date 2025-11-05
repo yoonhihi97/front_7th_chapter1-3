@@ -400,12 +400,12 @@ function App() {
                           return (
                             <Box
                               key={event.id}
-                              draggable={true}
+                              draggable={!isRepeating}
                               onDragStart={(e) => handleDragStart(e, event.id)}
                               sx={{
                                 ...eventBoxStyles.common,
                                 ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
-                                cursor: 'move',
+                                cursor: isRepeating ? 'not-allowed' : 'move',
                               }}
                             >
                               <Stack direction="row" spacing={1} alignItems="center">
@@ -513,7 +513,7 @@ function App() {
                               return (
                                 <Box
                                   key={event.id}
-                                  draggable={true}
+                                  draggable={!isRepeating}
                                   onDragStart={(e) => handleDragStart(e, event.id)}
                                   sx={{
                                     p: 0.5,
@@ -523,9 +523,9 @@ function App() {
                                     fontWeight: isNotified ? 'bold' : 'normal',
                                     color: isNotified ? '#d32f2f' : 'inherit',
                                     minHeight: '18px',
+                                    cursor: isRepeating ? 'not-allowed' : 'move',
                                     width: '100%',
                                     overflow: 'hidden',
-                                    cursor: 'move',
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">

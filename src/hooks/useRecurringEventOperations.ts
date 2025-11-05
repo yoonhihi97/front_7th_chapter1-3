@@ -115,13 +115,27 @@ export const useRecurringEventOperations = (
   });
 
   /**
+   * 날짜 차이(일수)를 계산합니다
+   * @param fromDate - 원래 날짜 (YYYY-MM-DD)
+   * @param toDate - 변경할 날짜 (YYYY-MM-DD)
+   * @returns 날짜 차이 (일수)
+   */
+  const calculateDateOffset = (fromDate: string, toDate: string): number => {
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const diffTime = to.getTime() - from.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  /**
    * Prefers recurring API when repeatId is available, falls back to individual updates
    */
   const updateRecurringSeries = async (
     originalEvent: Event,
     updatedEvent: Event,
     relatedEvents: Event[],
-    dateOffset: number = 0
+    isDragAndDrop: boolean = false
   ): Promise<boolean> => {
     const repeatId = originalEvent.repeat.id;
 
@@ -134,19 +148,24 @@ export const useRecurringEventOperations = (
         notificationTime: updatedEvent.notificationTime,
       };
 
-      // 날짜가 변경되었으면 오프셋 전송
-      if (dateOffset !== 0) {
+      // 드래그 앤 드롭인 경우: 날짜 오프셋 계산해서 전송
+      if (isDragAndDrop) {
+        const dateOffset = calculateDateOffset(originalEvent.date, updatedEvent.date);
         updateData.dateOffset = dateOffset;
       }
 
       return await updateRecurringEventOnServer(repeatId, updateData);
     } else {
       // repeat.id가 없을 때는 개별 이벤트 업데이트
+      const dateOffset = isDragAndDrop
+        ? calculateDateOffset(originalEvent.date, updatedEvent.date)
+        : 0;
+
       const results = await Promise.all(
         relatedEvents.map((event) => {
           const eventUpdate: Event = { ...event };
-          // 날짜 오프셋이 있으면 date 포함 (오프셋만큼)
-          if (dateOffset !== 0) {
+          // 드래그 앤 드롭인 경우에만 date 포함 (오프셋만큼)
+          if (isDragAndDrop && dateOffset !== 0) {
             const newDate = new Date(event.date);
             newDate.setDate(newDate.getDate() + dateOffset);
             const year = newDate.getFullYear();
@@ -171,12 +190,12 @@ export const useRecurringEventOperations = (
    * Handles editing of recurring events with user choice for scope
    * @param updatedEvent - The event with updated information
    * @param editSingleOnly - true for single event edit, false for series edit
-   * @param dateOffset - The number of days to offset the date (0 if no date change)
+   * @param isDragAndDrop - true if the edit is from drag and drop operation
    */
   const handleRecurringEdit = async (
     updatedEvent: Event,
     editSingleOnly: boolean,
-    dateOffset: number = 0
+    isDragAndDrop: boolean = false
   ): Promise<void> => {
     const originalEvent = events.find((e) => e.id === updatedEvent.id);
 
@@ -195,7 +214,7 @@ export const useRecurringEventOperations = (
       return;
     }
 
-    await updateRecurringSeries(originalEvent, updatedEvent, relatedEvents, dateOffset);
+    await updateRecurringSeries(originalEvent, updatedEvent, relatedEvents, isDragAndDrop);
     updateEvents([]);
   };
 

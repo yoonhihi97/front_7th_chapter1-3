@@ -211,7 +211,7 @@ test.describe('SearchAndFiltering', () => {
       date: '2025-10-15',
       startTime: '14:00',
       endTime: '15:00',
-      description: '고급 AI 알고리즘 논의',  // 제목에 없는 고유한 내용
+      description: '고급 AI 알고리즘 논의', // 제목에 없는 고유한 내용
       location: '회의실 A',
       category: '업무',
       repeat: { type: 'none', interval: 0 },
@@ -241,7 +241,7 @@ test.describe('SearchAndFiltering', () => {
       startTime: '12:00',
       endTime: '13:00',
       description: '회의 시간',
-      location: '강남역 대기업 지하 B2 식당',  // 제목/설명에 없는 고유한 위치명
+      location: '강남역 대기업 지하 B2 식당', // 제목/설명에 없는 고유한 위치명
       category: '개인',
       repeat: { type: 'none', interval: 0 },
       notificationTime: 10,

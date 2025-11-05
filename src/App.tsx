@@ -169,6 +169,14 @@ function App() {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const calculateDateOffset = (fromDate: string, toDate: string): number => {
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const diffTime = to.getTime() - from.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
     if (recurringDialogMode === 'edit' && pendingRecurringEdit) {
       // 편집 모드 저장하고 편집 폼으로 이동
@@ -179,7 +187,9 @@ function App() {
     } else if (recurringDialogMode === 'edit' && pendingDragEvent) {
       // 드래그 앤 드롭으로 인한 반복 일정 수정
       try {
-        await handleRecurringEdit(pendingDragEvent, editSingleOnly, true);
+        const originalEvent = events.find((e) => e.id === pendingDragEvent.id);
+        const dateOffset = originalEvent ? calculateDateOffset(originalEvent.date, pendingDragEvent.date) : 0;
+        await handleRecurringEdit(pendingDragEvent, editSingleOnly, dateOffset);
         enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
       } catch (error) {
         console.error(error);
@@ -315,7 +325,9 @@ function App() {
         editingEvent.repeat.interval > 0 &&
         recurringEditMode !== null
       ) {
-        await handleRecurringEdit(eventData as Event, recurringEditMode);
+        // 폼 수정 시 날짜 변경이 있으면 dateOffset 계산
+        const dateOffset = calculateDateOffset(editingEvent.date, date);
+        await handleRecurringEdit(eventData as Event, recurringEditMode, dateOffset);
         setRecurringEditMode(null);
       } else {
         await saveEvent(eventData);
